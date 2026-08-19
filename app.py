@@ -9,12 +9,24 @@ import sqlite3
 import datetime
 import os
 import tempfile
+import base64
 import smtplib
 import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from fpdf import FPDF
-import base64
+
+# ---- Optional Libraries with fallback ----
+try:
+    from fpdf import FPDF
+    PDF_AVAILABLE = True
+except ImportError:
+    PDF_AVAILABLE = False
+
+try:
+    from deepface import DeepFace
+    DEEPFACE_AVAILABLE = True
+except ImportError:
+    DEEPFACE_AVAILABLE = False
 
 # ---- PAGE CONFIG ----
 st.set_page_config(page_title="NETRA - BPR&D", layout="wide", initial_sidebar_state="expanded")
@@ -59,18 +71,13 @@ init_db()
 # ============================
 # 2. LOGIN SYSTEM (Role-based Access)
 # ============================
-# सिम्पल लॉजिन (बिना किसी एक्सट्रा लाइब्रेरी के, सरकारी स्टैंडर्ड के हिसाब से)
-# पासवर्ड: admin123, jailer123, dgp123
 def check_password(username, password):
-    # Real implementation should use hashed passwords, but for demo:
     users = {
         "admin": "admin123",
         "jailer": "jailer123",
         "dgp": "dgp123"
     }
-    if username in users and users[username] == password:
-        return True
-    return False
+    return username in users and users[username] == password
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
@@ -95,7 +102,6 @@ if not st.session_state.logged_in:
                     st.error("Invalid credentials. Please try again.")
     st.stop()
 
-# ---- Role-based Access Control ----
 def has_access(required_role):
     if st.session_state.role == "admin":
         return True
@@ -106,7 +112,7 @@ def has_access(required_role):
     return False
 
 # ============================
-# 3. CSS (सरकारी थीम + हैमबर्गर)
+# 3. CSS
 # ============================
 css_code = """
 <style>
@@ -197,23 +203,20 @@ with st.sidebar:
     page = st.selectbox("Menu", ["Dashboard", "Visitor Intelligence", "Biometric Scan", "Network Analysis", "Generate Reports"], label_visibility="collapsed")
     st.markdown('<hr>', unsafe_allow_html=True)
     
-    # System Health
     st.markdown("""
     <div style="font-size:11px; font-weight:700; color:#8a9aa8;">⚙️ SYSTEM HEALTH</div>
     <div style="background:#f8fafc; padding:8px 10px; border-radius:8px; font-size:12px; margin-top:5px;">
         <div>🟢 CPU: 34%</div>
         <div>🟡 Memory: 72%</div>
-        <div>🟢 AI Engine: Active</div>
+        <div>🟢 AI Engine: {}</div>
         <div>🟢 DB: SQLite Connected</div>
     </div>
-    """, unsafe_allow_html=True)
+    """.format("Active" if DEEPFACE_AVAILABLE else "Mock"), unsafe_allow_html=True)
     st.markdown('<hr>', unsafe_allow_html=True)
     uploaded_file = st.file_uploader("Import Logs (CSV)", type=['csv'], label_visibility="collapsed")
 
-# ---- DATA LOADING (DB + CSV) ----
+# ---- DATA LOADING ----
 df_db = load_visits()
-
-# अगर CSV अपलोड होती है तो उसे DB में मर्ज करो
 if uploaded_file is not None:
     df_csv = pd.read_csv(uploaded_file)
     for _, row in df_csv.iterrows():
@@ -221,12 +224,8 @@ if uploaded_file is not None:
                    row.get('Duration_Mins', 0), row.get('Risk_Score', 0), 0, "")
     st.success(f"✅ {len(df_csv)} records imported successfully!")
 
-# ============================
-# 4. AI LOGIC (History + Suspects)
-# ============================
 df = df_db.copy()
 if df.empty:
-    # डमी डेटा अगर DB खाली है
     dummy = [
         ("Ramesh", "I-101", "2026-01-01", 15, 20),
         ("Ramesh", "I-102", "2026-01-03", 20, 10),
@@ -248,25 +247,18 @@ daily_multi = df.groupby(['visitor_name', 'Date'])['inmate_id'].nunique()
 suspicious_daily = daily_multi[daily_multi >= 2].index.get_level_values(0).unique().tolist()
 suspects = list(set(frequent_visitors + suspicious_daily))
 
-if len(suspects) >= 3:
-    risk_level = "HIGH"
-    risk_class = "risk-high"
-elif len(suspects) >= 1:
-    risk_level = "MEDIUM"
-    risk_class = "risk-mid"
-else:
-    risk_level = "LOW"
-    risk_class = "risk-low"
+if len(suspects) >= 3: risk_level, risk_class = "HIGH", "risk-high"
+elif len(suspects) >= 1: risk_level, risk_class = "MEDIUM", "risk-mid"
+else: risk_level, risk_class = "LOW", "risk-low"
 
 # ============================
-# 5. EMAIL ALERT FUNCTION (SMTP)
+# EMAIL ALERT
 # ============================
 def send_email_alert(visitor_name, risk_score, inmate_id):
     try:
-        sender = "your-email@gmail.com"  # बदलना होगा
-        password = "your-app-password"   # बदलना होगा
-        receiver = "superintendent@jail.gov.in"  # बदलना होगा
-        
+        sender = st.secrets.get("EMAIL_SENDER", "your-email@gmail.com")
+        password = st.secrets.get("EMAIL_PASSWORD", "your-password")
+        receiver = st.secrets.get("EMAIL_RECEIVER", "superintendent@jail.gov.in")
         subject = f"🚨 HIGH RISK ALERT - NETRA System"
         body = f"""
         ALERT: High risk visitor detected.
@@ -276,14 +268,11 @@ def send_email_alert(visitor_name, risk_score, inmate_id):
         Time: {datetime.datetime.now()}
         Action: Immediate verification required.
         """
-        
         msg = MIMEMultipart()
         msg['From'] = sender
         msg['To'] = receiver
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'plain'))
-        
-        # Gmail SMTP
         context = ssl.create_default_context()
         with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
             server.login(sender, password)
@@ -294,9 +283,12 @@ def send_email_alert(visitor_name, risk_score, inmate_id):
         return False
 
 # ============================
-# 6. PDF REPORT GENERATOR
+# PDF REPORT (optional)
 # ============================
 def generate_pdf_report(data):
+    if not PDF_AVAILABLE:
+        st.error("PDF library not installed. Please add 'fpdf' to requirements.")
+        return None
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", "B", 16)
@@ -314,40 +306,34 @@ def generate_pdf_report(data):
         pdf.cell(40, 10, str(row['visit_date']), 1)
         pdf.cell(40, 10, str(row['risk_score']), 1)
         pdf.ln()
-    
     pdf_path = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf").name
     pdf.output(pdf_path)
     return pdf_path
 
 # ============================
-# 7. REAL AI FACE MATCH (DeepFace)
+# FACE MATCH (Real AI if available)
 # ============================
 def face_match(captured_img):
+    if not DEEPFACE_AVAILABLE:
+        # Mock AI
+        return random.choice([(False, None), (True, "mock_blacklist.jpg")])
     try:
-        from deepface import DeepFace
-        # ब्लैकलिस्ट फोल्डर बनाओ
         os.makedirs("blacklist_images", exist_ok=True)
-        
-        # टेम्प फाइल में सेव करो
         temp_path = tempfile.NamedTemporaryFile(delete=False, suffix=".jpg").name
         captured_img.save(temp_path)
-        
-        # ब्लैकलिस्ट इमेजेज स्कैन करो
         if os.listdir("blacklist_images"):
             df_result = DeepFace.find(img_path=temp_path, db_path="blacklist_images", enforce_detection=False)
             if df_result and not df_result[0].empty:
-                # सबसे बेस्ट मैच
-                best_match = df_result[0].iloc[0]
-                distance = best_match['distance']
-                if distance < 0.5:  # 80% match
-                    return True, best_match['identity']
+                best = df_result[0].iloc[0]
+                if best['distance'] < 0.5:
+                    return True, best['identity']
         return False, None
     except Exception as e:
-        st.warning(f"Face match module not fully configured: {e}")
+        st.warning(f"Face match error: {e}")
         return False, None
 
 # ============================
-# 8. PAGE RENDER
+# PAGE RENDER
 # ============================
 if page == "Dashboard":
     st.markdown("<h2 style='font-weight:600;'>📊 Executive Dashboard</h2>", unsafe_allow_html=True)
@@ -356,7 +342,6 @@ if page == "Dashboard":
     with col2: st.markdown(f"""<div class="metric-card"><div class="metric-value">{df['inmate_id'].nunique()}</div><div class="metric-label">Total Inmates</div></div>""", unsafe_allow_html=True)
     with col3: st.markdown(f"""<div class="metric-card"><div class="metric-value">{len(df)}</div><div class="metric-label">Total Records (History)</div></div>""", unsafe_allow_html=True)
     with col4: st.markdown(f"""<div class="metric-card" style="border-left-color: {'#dc2626' if risk_level=='HIGH' else '#ca8a04' if risk_level=='MEDIUM' else '#16a34a'};"><div class="metric-value"><span class="risk-badge {risk_class}">{risk_level}</span></div><div class="metric-label">Current Alert</div></div>""", unsafe_allow_html=True)
-    
     st.subheader("📜 Last 20 Activity Logs (Persistent)")
     st.dataframe(df.head(20), use_container_width=True)
 
@@ -374,8 +359,8 @@ elif page == "Visitor Intelligence":
 
 elif page == "Biometric Scan":
     st.markdown("<h2 style='font-weight:600;'>📸 AI Face Detection & Blacklist Match</h2>", unsafe_allow_html=True)
-    st.caption("System captures face and matches with Blacklist Database (DeepFace AI).")
-    
+    st.caption("System captures face and matches with Blacklist Database (DeepFace AI)." + (" (Real AI Active)" if DEEPFACE_AVAILABLE else " (Mock Mode - Install DeepFace for real matching)"))
+
     col_cam, col_info = st.columns([2,1])
     with col_cam:
         img_file = st.camera_input("Capture Face")
@@ -387,24 +372,22 @@ elif page == "Biometric Scan":
             draw.rectangle([box_x1, box_y1, box_x2, box_y2], outline="#00FF00", width=4)
             draw.text((box_x1, box_y1-20), "SCANNING...", fill="#00FF00")
             st.image(img, caption="Captured Feed", use_container_width=True)
-            
+
             with st.spinner("🔍 Matching with Blacklist Database..."):
                 is_match, match_path = face_match(img)
-            
+
             risk_score = random.randint(10, 95)
             if is_match or risk_score > 75:
                 st.error(f"🚨 HIGH RISK ALERT! Match Found: {os.path.basename(match_path) if match_path else 'Unknown'} (Score: {risk_score}%)")
-                # Email Alert
                 if st.button("📧 Send Email Alert to Superintendent"):
                     send_email_alert("Unknown_Visitor", risk_score, "I-101")
                     st.success("Alert email sent!")
             else:
                 st.success(f"✅ Identity Verified. Risk Score: {risk_score}% (Low)")
 
-            # Save to DB
             save_visit("Camera_Scan", "I-999", 0, risk_score, 1 if is_match else 0, "")
             st.info("Scan logged to database.")
-            
+
     with col_info:
         st.markdown("#### 📋 Profile")
         st.text_input("Full Name")
@@ -429,10 +412,14 @@ elif page == "Generate Reports":
         col_r1, col_r2 = st.columns(2)
         with col_r1:
             if st.button("📥 Download Monthly Suspect Report (PDF)"):
-                with st.spinner("Generating PDF..."):
-                    pdf_path = generate_pdf_report(df.head(100))
-                    with open(pdf_path, "rb") as f:
-                        st.download_button("📎 Click to Download Report", f, file_name="NETRA_Monthly_Report.pdf")
+                if not PDF_AVAILABLE:
+                    st.error("PDF generation not available. Please install fpdf.")
+                else:
+                    with st.spinner("Generating PDF..."):
+                        pdf_path = generate_pdf_report(df.head(100))
+                        if pdf_path:
+                            with open(pdf_path, "rb") as f:
+                                st.download_button("📎 Click to Download Report", f, file_name="NETRA_Monthly_Report.pdf")
         with col_r2:
             st.download_button("⬇️ Download Raw Data (CSV)", df.to_csv(index=False).encode('utf-8'), file_name="NETRA_Data.csv")
     else:
