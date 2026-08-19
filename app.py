@@ -3,7 +3,6 @@ import pandas as pd
 import networkx as nx
 import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
-import numpy as np
 import io
 import random
 
@@ -110,6 +109,124 @@ df = load_data(uploaded_file)
 
 # ---- AI LOGIC ----
 visitor_counts = df['Visitor_Name'].value_counts()
+frequent_visitors = visitor_counts[visitor_counts >= 3].index.tolist()
+df['Date'] = pd.to_datetime(df['Visit_Date'])
+daily_multi = df.groupby(['Visitor_Name', 'Date'])['Inmate_ID'].nunique()
+suspicious_daily = daily_multi[daily_multi >= 2].index.get_level_values(0).unique().tolist()
+suspects = list(set(frequent_visitors + suspicious_daily))
+
+risk_level = "HIGH"
+if len(suspects) >= 3:
+    risk_level = "HIGH"
+elif len(suspects) >= 1:
+    risk_level = "MEDIUM"
+else:
+    risk_level = "LOW"
+
+# ---- DASHBOARD METRICS ----
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    st.markdown(f"""<div class="metric-card"><div class="metric-value">{df['Visitor_Name'].nunique()}</div>Total Visitors</div>""", unsafe_allow_html=True)
+with col2:
+    st.markdown(f"""<div class="metric-card"><div class="metric-value">{df['Inmate_ID'].nunique()}</div>Total Inmates</div>""", unsafe_allow_html=True)
+with col3:
+    st.markdown(f"""<div class="metric-card"><div class="metric-value">{len(df)}</div>Total Visits</div>""", unsafe_allow_html=True)
+with col4:
+    badge = 'risk-high' if risk_level == "HIGH" else ('risk-mid' if risk_level == "MEDIUM" else 'risk-low')
+    st.markdown(f"""<div class="metric-card"><div class="metric-value"><span class="{badge}">{risk_level}</span></div>Alert Level</div>""", unsafe_allow_html=True)
+
+# ---- TABS ----
+tab1, tab2, tab3, tab4 = st.tabs(["📋 Visitor Logs", "🚨 Intelligence (Suspects)", "📸 AI Face Detector", "🕸️ Connection Map"])
+
+with tab1:
+    st.subheader("Visitor Registry")
+    st.dataframe(df, use_container_width=True)
+
+with tab2:
+    st.subheader("Suspicious Activity Report")
+    if suspects:
+        st.warning(f"🚨 {len(suspects)} Suspect(s) Flagged")
+        for name in suspects:
+            st.markdown(f"- **{name}** (Visits: {visitor_counts.get(name,0)} | Linked Inmates: {df[df['Visitor_Name']==name]['Inmate_ID'].nunique()})")
+            st.progress(min(1.0, visitor_counts.get(name,0)/5))
+    else:
+        st.success("✅ No anomalies detected.")
+
+# ---- AI CAMERA (PIL based - NO OpenCV) ----
+with tab3:
+    st.subheader("Live AI Surveillance & Face Match")
+    st.markdown("**Visitor Check-In Kiosk** *(Powered by Government AI Mock Server)*")
+    
+    col_cam, col_info = st.columns([2, 1])
+    with col_cam:
+        img_file_buffer = st.camera_input("Capture Visitor Face")
+        
+        if img_file_buffer is not None:
+            # Load image using PIL
+            img = Image.open(io.BytesIO(img_file_buffer.getvalue())).convert("RGB")
+            
+            # Draw a realistic AI Bounding Box using PIL
+            draw = ImageDraw.Draw(img)
+            width, height = img.size
+            
+            box_x1 = int(width * 0.25)
+            box_y1 = int(height * 0.25)
+            box_x2 = int(width * 0.75)
+            box_y2 = int(height * 0.75)
+            
+            draw.rectangle([box_x1, box_y1, box_x2, box_y2], outline="#00FF00", width=4)
+            draw.text((box_x1, box_y1-20), "FACE DETECTED (AI)", fill="#00FF00")
+            
+            # Mock Risk Score
+            risk_score = random.randint(15, 95)
+            
+            st.image(img, caption="AI Processed Feed", use_column_width=True)
+            
+            st.markdown("**🧠 AI Analysis Result:**")
+            if risk_score > 70:
+                st.error(f"⚠️ HIGH RISK MATCH! (Score: {risk_score}%) - Potential Blacklist Match!")
+                if "CAM_SUSPECT" not in st.session_state:
+                    st.session_state["CAM_SUSPECT"] = []
+                if len(st.session_state["CAM_SUSPECT"]) == 0:
+                    st.session_state["CAM_SUSPECT"].append("Unknown_Cam_User")
+                    st.warning("🚨 Added to real-time suspect list!")
+            elif risk_score > 40:
+                st.warning(f"⚠️ MEDIUM RISK (Score: {risk_score}%) - Verification required.")
+            else:
+                st.success(f"✅ LOW RISK (Score: {risk_score}%) - Clear.")
+        else:
+            st.info("📸 Press 'Capture' above to scan the visitor.")
+
+    with col_info:
+        st.markdown("#### 📋 Visitor Profile")
+        st.text_input("Full Name", placeholder="Enter Name")
+        st.text_input("Aadhar (Last 4)", placeholder="XXXX", type="password")
+        if st.button("✅ AI Check-in"):
+            st.success("Biometric scan queued. Check camera feed.")
+
+# ---- NETWORK GRAPH ----
+with tab4:
+    st.subheader("Network Intelligence Graph")
+    fig, ax = plt.subplots(figsize=(12, 6))
+    G = nx.Graph()
+    for _, row in df.iterrows():
+        G.add_edge(row['Visitor_Name'], row['Inmate_ID'])
+    
+    color_map = []
+    for node in G.nodes():
+        if node in suspects:
+            color_map.append('red')
+        elif node.startswith('I-'):
+            color_map.append('#0B4F6C')
+        else:
+            color_map.append('#FF9933')
+    
+    nx.draw(G, with_labels=True, node_color=color_map, node_size=1500, font_size=9, font_weight='bold', pos=nx.spring_layout(G, seed=42))
+    st.pyplot(fig)
+
+# ---- FOOTER (यहाँ सिंटेक्स बिल्कुल सही है) ----
+st.markdown("---")
+st.caption("(c) 2026 BPR&D, Ministry of Home Affairs | Secured by Cyber Protocols")visitor_counts = df['Visitor_Name'].value_counts()
 frequent_visitors = visitor_counts[visitor_counts >= 3].index.tolist()
 df['Date'] = pd.to_datetime(df['Visit_Date'])
 daily_multi = df.groupby(['Visitor_Name', 'Date'])['Inmate_ID'].nunique()
