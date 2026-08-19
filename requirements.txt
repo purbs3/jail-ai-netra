@@ -2,3 +2,9 @@ streamlit
 pandas
 networkx
 matplotlib
+pillow
+numpy
+fpdf
+deepface
+opencv-python-headless
+tensorflow
