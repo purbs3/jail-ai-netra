@@ -5,6 +5,3 @@ matplotlib
 pillow
 numpy
 fpdf
-deepface
-opencv-python-headless
-tensorflow
