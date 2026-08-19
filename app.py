@@ -17,18 +17,17 @@ st.markdown("""
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
-    /* Global Font */
     body, .stApp {
         font-family: 'Segoe UI', Roboto, Arial, sans-serif;
         background-color: #f4f7fc;
     }
 
-    /* ----- HEADER (Government Style) ----- */
+    /* ----- HEADER ----- */
     .gov-header {
         background: white;
-        padding: 0.8rem 1.5rem;
+        padding: 0.6rem 1.5rem;
         border-bottom: 4px solid #0B4F6C;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         margin-bottom: 1.5rem;
     }
     .gov-header-top {
@@ -39,7 +38,7 @@ st.markdown("""
     }
     .gov-title {
         font-weight: 700;
-        font-size: 1.4rem;
+        font-size: 1.3rem;
         color: #1a1a1a;
         margin: 0;
     }
@@ -65,9 +64,44 @@ st.markdown("""
         border-radius: 2px;
     }
 
-    /* ----- SIDEBAR (Enterprise Style) ----- */
+    /* ----- SIDEBAR NAVIGATION (Radio बटन को स्टाइल) ----- */
+    /* Radio के डिफॉल्ट लेबल को हटाओ */
+    .stRadio > div {
+        flex-direction: column !important;
+        gap: 2px !important;
+    }
+    /* हर ऑप्शन को Nav Item जैसा बनाओ */
+    .stRadio label {
+        padding: 10px 15px !important;
+        margin: 2px 0 !important;
+        border-radius: 8px !important;
+        font-weight: 500 !important;
+        font-size: 14px !important;
+        color: #3d4b5a !important;
+        background: transparent !important;
+        border-left: 3px solid transparent !important;
+        transition: 0.2s !important;
+        cursor: pointer !important;
+    }
+    /* होवर इफेक्ट */
+    .stRadio label:hover {
+        background: #f0f3f7 !important;
+    }
+    /* सिलेक्टेड (Active) ऑप्शन */
+    .stRadio label[data-checked="true"] {
+        background: #e8f0fe !important;
+        color: #0B4F6C !important;
+        border-left: 3px solid #0B4F6C !important;
+        font-weight: 600 !important;
+    }
+    /* Radio के बुलेट पॉइंट्स (Circle) को हटाओ */
+    .stRadio label > div:first-child {
+        display: none !important;
+    }
+
+    /* Sidebar ब्रांडिंग */
     .sidebar-logo {
-        padding: 15px 0 10px 0;
+        padding: 10px 0 15px 0;
         border-bottom: 1px solid #e6e9ef;
         margin-bottom: 15px;
     }
@@ -82,26 +116,6 @@ st.markdown("""
         color: #7b8a9b;
         font-weight: 500;
     }
-    .nav-item {
-        padding: 10px 15px;
-        margin: 2px 0;
-        border-radius: 8px;
-        font-weight: 500;
-        font-size: 14px;
-        color: #3d4b5a;
-        transition: 0.2s;
-        cursor: default;
-        border-left: 3px solid transparent;
-    }
-    .nav-item.active {
-        background: #e8f0fe;
-        color: #0B4F6C;
-        border-left: 3px solid #0B4F6C;
-        font-weight: 600;
-    }
-    .nav-item:hover {
-        background: #f0f3f7;
-    }
     .nav-divider {
         height: 1px;
         background: #e6e9ef;
@@ -109,7 +123,7 @@ st.markdown("""
     }
     .sys-status {
         background: #f8fafc;
-        padding: 12px 15px;
+        padding: 10px 12px;
         border-radius: 8px;
         border: 1px solid #e6e9ef;
         font-size: 13px;
@@ -117,11 +131,12 @@ st.markdown("""
     .status-dot-green { display: inline-block; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; margin-right: 6px; }
     .status-dot-red { display: inline-block; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; margin-right: 6px; }
     .status-dot-yellow { display: inline-block; width: 8px; height: 8px; background: #eab308; border-radius: 50%; margin-right: 6px; }
+    
     .user-profile {
         background: white;
         border: 1px solid #e6e9ef;
         border-radius: 30px;
-        padding: 8px 15px 8px 12px;
+        padding: 6px 12px 6px 8px;
         display: flex;
         align-items: center;
         gap: 10px;
@@ -164,7 +179,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-#  1. HEADER (इमोजी-फ्री)
+#  1. HEADER
 # ==========================================
 st.markdown("""
 <div class="gov-header">
@@ -190,10 +205,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==========================================
-#  2. SIDEBAR (Enterprise Software Look)
+#  2. SIDEBAR (इंटरैक्टिव नेविगेशन)
 # ==========================================
 with st.sidebar:
-    # ---- Logo & Brand ----
+    # Brand
     st.markdown("""
     <div class="sidebar-logo">
         <div class="app-name">NETRA</div>
@@ -202,20 +217,25 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    # ---- Navigation Menu ----
+    # ---- यहाँ MAGIC है: Clickable Navigation Menu ----
     st.markdown("""
-    <div style="font-size: 11px; font-weight: 700; color: #8a9aa8; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 15px; margin-bottom: 8px;">Navigation</div>
-    <div class="nav-item active"> Dashboard</div>
-    <div class="nav-item"> Visitor Intelligence</div>
-    <div class="nav-item"> Inmate Database</div>
-    <div class="nav-item"> Biometric Surveillance</div>
-    <div class="nav-item"> Analytics & Reports</div>
-    <div class="nav-divider"></div>
+    <div style="font-size: 11px; font-weight: 700; color: #8a9aa8; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 5px; margin-bottom: 8px;">Navigation</div>
     """, unsafe_allow_html=True)
+    
+    # Radio बटन: जिस पर क्लिक करेंगे, वही Page खुलेगा
+    page = st.radio(
+        label="Menu",  # Label को CSS से हटा दिया है
+        options=["Dashboard", "Visitor Intelligence", "Biometric Scan", "Network Analysis"],
+        index=0,
+        key="nav_page",
+        label_visibility="collapsed"  # लेबल को पूरी तरह छिपाओ
+    )
 
-    # ---- System Health Monitor ----
+    st.markdown('<div class="nav-divider"></div>', unsafe_allow_html=True)
+
+    # System Health
     st.markdown("""
-    <div style="font-size: 11px; font-weight: 700; color: #8a9aa8; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 15px; margin-bottom: 8px;">System Health</div>
+    <div style="font-size: 11px; font-weight: 700; color: #8a9aa8; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 5px; margin-bottom: 8px;">System Health</div>
     <div class="sys-status">
         <div style="display: flex; justify-content: space-between; font-size: 13px;"><span>CPU Load</span> <span><span class="status-dot-green"></span> 34%</span></div>
         <div style="display: flex; justify-content: space-between; font-size: 13px; margin-top: 4px;"><span>Memory</span> <span><span class="status-dot-yellow"></span> 72%</span></div>
@@ -226,30 +246,11 @@ with st.sidebar:
 
     st.markdown('<div class="nav-divider"></div>', unsafe_allow_html=True)
 
-    # ---- User Profile ----
-    st.markdown("""
-    <div class="user-profile">
-        <div class="user-avatar">AK</div>
-        <div>
-            <div style="font-weight: 600; font-size: 14px; line-height: 1.2;">Amit Kumar</div>
-            <div style="font-size: 11px; color: #6b7a8a;">Superintendent (Admin)</div>
-        </div>
-        <div style="margin-left: auto; font-size: 12px; color: #0B4F6C;">●</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown('<div class="nav-divider"></div>', unsafe_allow_html=True)
-
-    # ---- Data Import (File Uploader) ----
-    st.markdown("""
-    <div style="font-size: 11px; font-weight: 700; color: #8a9aa8; text-transform: uppercase; letter-spacing: 0.5px; padding: 0 5px; margin-bottom: 8px;">Data Import</div>
-    """, unsafe_allow_html=True)
-    
-    uploaded_file = st.file_uploader("Upload Visitor Log (CSV)", type=['csv'], label_visibility="collapsed")
-    
+    # File Uploader
+    uploaded_file = st.file_uploader("Import Visitor Log (CSV)", type=['csv'], label_visibility="collapsed")
     st.markdown("""
     <div style="margin-top: 10px; font-size: 12px; color: #6b7a8a; text-align: center; border-top: 1px solid #e6e9ef; padding-top: 15px;">
-        <div>Quick Actions</div>
+        <div style="font-weight:600; font-size:11px;">QUICK ACTIONS</div>
         <div style="display: flex; gap: 6px; justify-content: center; margin-top: 5px; flex-wrap: wrap;">
             <span style="background: #f0f3f7; padding: 2px 10px; border-radius: 12px; font-size: 11px;">New Check-in</span>
             <span style="background: #f0f3f7; padding: 2px 10px; border-radius: 12px; font-size: 11px;">Gen Report</span>
@@ -257,8 +258,19 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
+    # User Profile
+    st.markdown("""
+    <div class="user-profile">
+        <div class="user-avatar">AK</div>
+        <div>
+            <div style="font-weight: 600; font-size: 14px; line-height: 1.2;">Amit Kumar</div>
+            <div style="font-size: 11px; color: #6b7a8a;">Superintendent (Admin)</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
 # ==========================================
-#  3. DATA LOADING LOGIC
+#  3. DATA LOADING (डेटा सब जगह काम आएगा)
 # ==========================================
 @st.cache_data
 def load_data(file):
@@ -278,7 +290,7 @@ def load_data(file):
 
 df = load_data(uploaded_file)
 
-# ---- AI INTELLIGENCE LOGIC ----
+# ---- AI INTELLIGENCE LOGIC (सभी पेजों के लिए कॉमन) ----
 visitor_counts = df['Visitor_Name'].value_counts()
 frequent_visitors = visitor_counts[visitor_counts >= 3].index.tolist()
 df['Date'] = pd.to_datetime(df['Visit_Date'])
@@ -297,93 +309,66 @@ else:
     risk_class = "risk-low"
 
 # ==========================================
-#  4. DASHBOARD METRICS
+#  4. PAGE RENDER (जादू यहीं होता है)
 # ==========================================
-col1, col2, col3, col4 = st.columns(4)
 
-with col1:
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-value">{df['Visitor_Name'].nunique()}</div>
-        <div class="metric-label">Total Visitors</div>
-    </div>
-    """, unsafe_allow_html=True)
+# ----- PAGE 1: DASHBOARD -----
+if page == "Dashboard":
+    st.markdown("<h2 style='font-weight:600; color:#1a1a1a;'>Executive Dashboard</h2>", unsafe_allow_html=True)
+    
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.markdown(f"""<div class="metric-card"><div class="metric-value">{df['Visitor_Name'].nunique()}</div><div class="metric-label">Total Visitors</div></div>""", unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""<div class="metric-card"><div class="metric-value">{df['Inmate_ID'].nunique()}</div><div class="metric-label">Total Inmates</div></div>""", unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"""<div class="metric-card"><div class="metric-value">{len(df)}</div><div class="metric-label">Total Visits</div></div>""", unsafe_allow_html=True)
+    with col4:
+        st.markdown(f"""<div class="metric-card" style="border-left-color: {'#dc2626' if risk_level=='HIGH' else '#ca8a04' if risk_level=='MEDIUM' else '#16a34a'};"><div class="metric-value"><span class="risk-badge {risk_class}">{risk_level}</span></div><div class="metric-label">Security Alert Level</div></div>""", unsafe_allow_html=True)
+    
+    st.subheader("Recent Visitor Activity")
+    st.dataframe(df.head(10), use_container_width=True)
+    
+    st.caption("Dashboard refreshes automatically on data update.")
 
-with col2:
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-value">{df['Inmate_ID'].nunique()}</div>
-        <div class="metric-label">Total Inmates</div>
-    </div>
-    """, unsafe_allow_html=True)
+# ----- PAGE 2: VISITOR INTELLIGENCE -----
+elif page == "Visitor Intelligence":
+    st.markdown("<h2 style='font-weight:600; color:#1a1a1a;'>Visitor Intelligence Unit</h2>", unsafe_allow_html=True)
+    
+    tab_logs, tab_suspects = st.tabs(["All Logs", "Flagged Suspects"])
+    with tab_logs:
+        st.dataframe(df, use_container_width=True)
+    with tab_suspects:
+        if suspects:
+            st.warning(f"ALERT: {len(suspects)} suspect(s) flagged for surveillance.")
+            for name in suspects:
+                col_a, col_b = st.columns([1, 4])
+                with col_a:
+                    st.markdown(f"<div style='background:#dc2626; color:white; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;'>!</div>", unsafe_allow_html=True)
+                with col_b:
+                    st.markdown(f"**{name}**")
+                    st.caption(f"Visits: {visitor_counts.get(name,0)} | Linked Inmates: {df[df['Visitor_Name']==name]['Inmate_ID'].nunique()}")
+                    st.progress(min(1.0, visitor_counts.get(name,0)/5))
+        else:
+            st.success("All clear. No anomalies detected.")
 
-with col3:
-    st.markdown(f"""
-    <div class="metric-card">
-        <div class="metric-value">{len(df)}</div>
-        <div class="metric-label">Total Visits</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col4:
-    st.markdown(f"""
-    <div class="metric-card" style="border-left-color: {'#dc2626' if risk_level=='HIGH' else '#ca8a04' if risk_level=='MEDIUM' else '#16a34a'};">
-        <div class="metric-value"><span class="risk-badge {risk_class}">{risk_level}</span></div>
-        <div class="metric-label">Security Alert Level</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-# ==========================================
-#  5. TABS (इमोजी-फ्री नाम)
-# ==========================================
-tab1, tab2, tab3, tab4 = st.tabs(["VISITOR LOGS", "INTELLIGENCE UNIT", "BIOMETRIC SCAN", "NETWORK MAP"])
-
-with tab1:
-    st.subheader("Visitor Registry")
-    st.dataframe(df, use_container_width=True)
-
-with tab2:
-    st.subheader("Suspicious Activity Report")
-    if suspects:
-        st.warning(f"ALERT: {len(suspects)} suspect(s) flagged for surveillance.")
-        for name in suspects:
-            col_a, col_b = st.columns([1, 4])
-            with col_a:
-                st.markdown(f"<div style='background:#0B4F6C; color:white; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;'>!</div>", unsafe_allow_html=True)
-            with col_b:
-                st.markdown(f"**{name}**")
-                st.caption(f"Visits: {visitor_counts.get(name,0)} | Linked Inmates: {df[df['Visitor_Name']==name]['Inmate_ID'].nunique()}")
-                st.progress(min(1.0, visitor_counts.get(name,0)/5))
-    else:
-        st.success("All clear. No anomalies detected.")
-
-with tab3:
-    st.subheader("Biometric AI Surveillance")
+# ----- PAGE 3: BIOMETRIC SCAN (AI Camera) -----
+elif page == "Biometric Scan":
+    st.markdown("<h2 style='font-weight:600; color:#1a1a1a;'>Biometric AI Surveillance</h2>", unsafe_allow_html=True)
     st.caption("Visitor Check-In Kiosk | AI Mock Server Active")
     
     col_cam, col_info = st.columns([2, 1])
-    
     with col_cam:
         img_file_buffer = st.camera_input("Capture Visitor Face")
-        
         if img_file_buffer is not None:
             img = Image.open(io.BytesIO(img_file_buffer.getvalue())).convert("RGB")
-            
             draw = ImageDraw.Draw(img)
             width, height = img.size
-            
-            box_x1 = int(width * 0.25)
-            box_y1 = int(height * 0.25)
-            box_x2 = int(width * 0.75)
-            box_y2 = int(height * 0.75)
-            
+            box_x1, box_y1, box_x2, box_y2 = int(width*0.25), int(height*0.25), int(width*0.75), int(height*0.75)
             draw.rectangle([box_x1, box_y1, box_x2, box_y2], outline="#00FF00", width=4)
             draw.text((box_x1, box_y1-20), "FACE DETECTED", fill="#00FF00")
-            
             risk_score = random.randint(15, 95)
-            
             st.image(img, caption="AI Processed Feed", use_column_width=True)
-            
             st.markdown("**AI Analysis Result**")
             if risk_score > 70:
                 st.error(f"HIGH RISK MATCH! (Score: {risk_score}%)")
@@ -398,7 +383,7 @@ with tab3:
                 st.success(f"LOW RISK (Score: {risk_score}%)")
         else:
             st.info("Press 'Capture' to scan the visitor.")
-
+    
     with col_info:
         st.markdown("#### Visitor Profile")
         st.text_input("Full Name", placeholder="Enter Name")
@@ -407,30 +392,23 @@ with tab3:
         if st.button("AI Check-in"):
             st.success("Biometric scan queued.")
 
-with tab4:
-    st.subheader("Network Intelligence Graph")
+# ----- PAGE 4: NETWORK ANALYSIS -----
+elif page == "Network Analysis":
+    st.markdown("<h2 style='font-weight:600; color:#1a1a1a;'>Network Intelligence Graph</h2>", unsafe_allow_html=True)
+    st.caption("Visualizing connections between Visitors and Inmates.")
+    
     fig, ax = plt.subplots(figsize=(12, 6))
     G = nx.Graph()
-    
     for _, row in df.iterrows():
         G.add_edge(row['Visitor_Name'], row['Inmate_ID'])
-    
-    color_map = []
-    for node in G.nodes():
-        if node in suspects:
-            color_map.append('#dc2626')  # Red
-        elif node.startswith('I-'):
-            color_map.append('#0B4F6C')  # Dark Blue
-        else:
-            color_map.append('#FF9933')  # Saffron
-    
+    color_map = ['#dc2626' if node in suspects else ('#0B4F6C' if node.startswith('I-') else '#FF9933') for node in G.nodes()]
     nx.draw(G, with_labels=True, node_color=color_map, node_size=1500, 
             font_size=9, font_weight='bold', pos=nx.spring_layout(G, seed=42))
     st.pyplot(fig)
     st.caption("Node Legend: Red = Suspect | Saffron = Visitor | Dark Blue = Inmate")
 
 # ==========================================
-#  6. FOOTER (साफ-सुथरा)
+#  5. FOOTER
 # ==========================================
 st.markdown("""
 <div class="footer-text">
