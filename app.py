@@ -13,17 +13,16 @@ st.set_page_config(page_title="NETRA - BPR&D", layout="wide")
 # ============================
 css_code = """
 <style>
+    /* Sirf unwanted elements hide karein */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    
-    /* IMPORTANT: Header को मत छिपाओ, ताकि हैमबर्गर दिखे */
-    /* बस टूलबार (डिप्लॉय, ...) को छिपाओ */
     [data-testid="stToolbar"] { display: none !important; }
     .stAppDeployButton { display: none !important; }
     
-    body, .stApp {font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7fc;}
-
-    /* साइडबार हैमबर्गर टॉगल बटन - अब पूरी तरह विजिबल और बड़ा */
+    /* Header ko visible rakho — hamburger button isi mein hai */
+    header { visibility: visible !important; }
+    
+    /* Hamburger button ko aur bada aur attractive banayein */
     [data-testid="collapsedControl"] {
         background-color: #0B4F6C !important;
         color: white !important;
@@ -33,24 +32,23 @@ css_code = """
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        margin: 12px !important;
+        margin: 10px !important;
         border: 3px solid #FFFFFF !important;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.25) !important;
         z-index: 999999 !important;
-        transition: 0.3s !important;
     }
     [data-testid="collapsedControl"]:hover {
-        transform: scale(1.08) !important;
+        transform: scale(1.05) !important;
         background-color: #1a6a8a !important;
     }
     [data-testid="collapsedControl"] svg {
         fill: white !important;
         width: 28px !important;
         height: 28px !important;
-        stroke: white !important;
-        stroke-width: 2px !important;
     }
-
+    
+    /* Baki ka CSS aapka existing rahega */
+    /* ... */
     /* हेडर */
     .gov-header {
         background: white;
