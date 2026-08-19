@@ -9,7 +9,7 @@ import random
 st.set_page_config(page_title="NETRA - BPR&D", layout="wide")
 
 # ============================
-# CSS (पूरी तरह से अलग स्ट्रिंग)
+# CSS (क्लीन और प्रोफेशनल)
 # ============================
 css_code = """
 <style>
@@ -75,28 +75,27 @@ css_code = """
         border-radius: 2px;
     }
 
-    /* साइडबार नेविगेशन */
-    .stRadio > div { flex-direction: column !important; gap: 2px !important; }
-    .stRadio label {
-        padding: 10px 15px !important;
-        margin: 2px 0 !important;
-        border-radius: 8px !important;
-        font-weight: 500 !important;
-        font-size: 14px !important;
-        color: #3d4b5a !important;
-        background: transparent !important;
-        border-left: 3px solid transparent !important;
+    /* ---------- NEW: Navigation (Selectbox) को प्रोफेशनल बनाओ ---------- */
+    /* Selectbox के लेबल को छिपाओ */
+    .stSelectbox label { display: none !important; }
+    /* Selectbox के बॉक्स को स्टाइल करो */
+    .stSelectbox > div > div {
+        border: 2px solid #0B4F6C !important;
+        border-radius: 10px !important;
+        background-color: white !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05) !important;
         transition: 0.2s !important;
-        cursor: pointer !important;
     }
-    .stRadio label:hover { background: #f0f3f7 !important; }
-    .stRadio label[data-checked="true"] {
-        background: #e8f0fe !important;
-        color: #0B4F6C !important;
-        border-left: 3px solid #0B4F6C !important;
+    .stSelectbox > div > div:hover {
+        border-color: #1a6a8a !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    }
+    /* ड्रॉपडाउन के अंदर का टेक्स्ट */
+    .stSelectbox > div > div > div {
         font-weight: 600 !important;
+        color: #0B4F6C !important;
+        font-size: 14px !important;
     }
-    .stRadio label > div:first-child { display: none !important; }
 
     /* मेट्रिक कार्ड्स */
     .metric-card {
@@ -146,7 +145,6 @@ css_code = """
 </style>
 """
 
-# CSS को अलग से रेंडर करो
 st.markdown(css_code, unsafe_allow_html=True)
 
 # ---- HEADER ----
@@ -185,12 +183,13 @@ with st.sidebar:
     <div style="font-size:11px; font-weight:700; color:#8a9aa8; text-transform:uppercase; letter-spacing:0.5px; padding:0 5px; margin-bottom:8px;">Navigation</div>
     """, unsafe_allow_html=True)
 
-    page = st.radio(
-        label="Menu",
+    # ------------- यहाँ BADALAW हुआ है: Radio की जगह Selectbox -------------
+    page = st.selectbox(
+        label="Navigate to",
         options=["Dashboard", "Visitor Intelligence", "Biometric Scan", "Network Analysis"],
         index=0,
         key="nav_page",
-        label_visibility="collapsed"
+        label_visibility="collapsed"  # लेबल छिपा दिया
     )
 
     st.markdown('<div style="height:1px; background:#e6e9ef; margin:15px 0;"></div>', unsafe_allow_html=True)
