@@ -9,15 +9,21 @@ import random
 st.set_page_config(page_title="NETRA - BPR&D", layout="wide")
 
 # ============================
-# CSS
+# CSS (अब Header नहीं छिपा, सिर्फ Toolbar छिपा)
 # ============================
 css_code = """
 <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    header {visibility: hidden;}
+    
+    /* IMPORTANT: Header को मत छिपाओ, ताकि हैमबर्गर दिखे */
+    /* बस टूलबार (डिप्लॉय, ...) को छिपाओ */
+    [data-testid="stToolbar"] { display: none !important; }
+    .stAppDeployButton { display: none !important; }
+    
     body, .stApp {font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7fc;}
 
+    /* साइडबार हैमबर्गर टॉगल बटन - अब पूरी तरह विजिबल और बड़ा */
     [data-testid="collapsedControl"] {
         background-color: #0B4F6C !important;
         color: white !important;
@@ -27,14 +33,14 @@ css_code = """
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        margin: 10px !important;
+        margin: 12px !important;
         border: 3px solid #FFFFFF !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.25) !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
         z-index: 999999 !important;
         transition: 0.3s !important;
     }
     [data-testid="collapsedControl"]:hover {
-        transform: scale(1.05) !important;
+        transform: scale(1.08) !important;
         background-color: #1a6a8a !important;
     }
     [data-testid="collapsedControl"] svg {
@@ -45,6 +51,7 @@ css_code = """
         stroke-width: 2px !important;
     }
 
+    /* हेडर */
     .gov-header {
         background: white;
         padding: 0.6rem 1rem;
@@ -265,7 +272,6 @@ if page == "Dashboard":
         total_visitors = df['Visitor_Name'].nunique()
         st.markdown(f"""<div class="metric-card"><div class="metric-value">{total_visitors}</div><div class="metric-label">Total Visitors</div></div>""", unsafe_allow_html=True)
         
-        # पहले कलर वैरिएबल बनाओ, फिर F-string में डालो
         border_color = '#dc2626' if risk_level == 'HIGH' else '#ca8a04' if risk_level == 'MEDIUM' else '#16a34a'
         st.markdown(f"""<div class="metric-card" style="border-left-color: {border_color};"><div class="metric-value"><span class="risk-badge {risk_class}">{risk_level}</span></div><div class="metric-label">Security Alert</div></div>""", unsafe_allow_html=True)
         
@@ -315,7 +321,6 @@ elif page == "Biometric Scan":
             draw.text((box_x1, box_y1-20), "FACE DETECTED", fill="#00FF00")
             risk_score = random.randint(15, 95)
             
-            # FIX: use_container_width
             st.image(img, caption="AI Processed Feed", use_container_width=True)
             
             st.markdown("**AI Analysis Result**")
@@ -350,15 +355,14 @@ elif page == "Network Analysis":
     for _, row in df.iterrows():
         G.add_edge(row['Visitor_Name'], row['Inmate_ID'])
     
-    # FIX: Complex list comprehension को simple loop में बदला
     color_map = []
     for node in G.nodes():
         if node in suspects:
-            color_map.append('#dc2626')  # Red
+            color_map.append('#dc2626')
         elif node.startswith('I-'):
-            color_map.append('#0B4F6C')  # Dark Blue
+            color_map.append('#0B4F6C')
         else:
-            color_map.append('#FF9933')  # Saffron
+            color_map.append('#FF9933')
 
     nx.draw(G, with_labels=True, node_color=color_map, node_size=1500,
             font_size=9, font_weight='bold', pos=nx.spring_layout(G, seed=42))
